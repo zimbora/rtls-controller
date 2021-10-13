@@ -1,12 +1,12 @@
 var W3CWebSocket = require('websocket').w3cwebsocket;
-var settings = require("./settings");
+var settings = require("./config/settings");
 
 const http = require('http')
 var async = require('async')
 
-var ws = require("./ws.js");
-var Map = require("./map");
-var Automation = require("./automation");
+var ws = require("./src/ws.js");
+var Map = require("./src/map");
+var Automation = require("./src/automation");
 
 var client = null;
 

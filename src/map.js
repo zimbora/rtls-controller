@@ -1,6 +1,6 @@
 
 var request = require('request');
-var settings = require("./settings");
+var settings = require("../config/settings");
 
 module.exports = {
 
@@ -22,6 +22,7 @@ module.exports = {
     },
 
     getItemsBySector : (sector,callback)=>{
+
       var options = {
         'method': 'GET',
         'url': 'https://my.dev.inloc.cloud/api/map/4/data/item?sector='+sector,
