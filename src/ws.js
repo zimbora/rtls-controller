@@ -17,7 +17,6 @@ var is_connected = false;
 function sendMessage (client,message){
 
   if(!is_connected){
-    console.log("not connected");
     return;
   }
 

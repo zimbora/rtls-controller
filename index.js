@@ -26,9 +26,10 @@ function parseMessage(msg){
     console.log("keepalive received")
   else if(msg.topic.endsWith("update/location"))
     checkActions(msg.data);
-  else if(msg.topic.endsWith("update/automation"))
+  else if(msg.topic.endsWith("update/automation")){
+    console.log("update sensors and actuators");
     syncMap();
-  else if(msg.topic.endsWith("sensor/get")){
+  }else if(msg.topic.endsWith("sensor/get")){
     console.log("getting sensor value: "+msg.data.id)
     Automation.getSensorValue(msg.data.id,(response)=>{
       if(!response.error)
@@ -37,14 +38,22 @@ function parseMessage(msg){
     });
   }else if(msg.topic.endsWith("actuator/get")){
     console.log("getting actuator state: "+msg.data.id)
+    if(msg.data.id == null)
+      return;
     Automation.getState(msg.data.id,(response)=>{
       if(!response.error)
         ws.reportActuatorState(client,msg.data.id,response.data)
       else console.log(response)
     });
-  }else if(msg.topic.endsWith("actuator/set"))
-    Automation.setState(msg.data.id);
-  else{
+  }else if(msg.topic.endsWith("actuator/set")){
+    console.log("actuator set: "+msg.data.id)
+    Automation.setState(msg.data.id,(response)=>{
+      if(response.error){
+        ws.reportActuatorState(client,msg.data.id,response.data)
+        console.log(response)
+      }
+    });
+  }else{
     console.log(msg.topic)
   }
 }
@@ -89,8 +98,8 @@ function syncMap(){
     if(res.length > 0){
       rooms = JSON.parse(res[0].rooms);
       let i = 0;
-      Automation.actuator = [];
-      Automation.sensor = [];
+      Automation.actuator = {};
+      Automation.sensor = {};
       // updating devices automation
       async.eachOfSeries(rooms,(sector,key,next)=>{
         if(sector.name != null){
@@ -98,17 +107,14 @@ function syncMap(){
             if(items != null && items.length > 0){
               items.forEach((item)=>{
                 let data = JSON.parse(item.data);
+                console.log(data)
                 if(data.type == "actuator"){
-                  Automation.actuator = {
-                    [item.id] : {
-                      state:data,
-                    }
+                  Automation.actuator[item.id] = {
+                    state:data,
                   }
                 }else if(data.type == "sensor"){
-                  Automation.sensor = {
-                    [item.id] : {
-                      state:data,
-                    }
+                  Automation.sensor[item.id] = {
+                    state:data,
                   }
                 }
               });
@@ -149,7 +155,7 @@ function ws_connect() {
   client = new W3CWebSocket(settings.ws_domain, 'echo-protocol');
 
   client.onerror = function() {
-      console.log('Connection Error');
+      //console.log('Connection Error');
       client.close();
   };
 
@@ -164,11 +170,11 @@ function ws_connect() {
   };
 
   client.onclose = function() {
-      console.log('WebSocket Client Closed');
+      //console.log('WebSocket Client Closed');
       ws.lost_connection();
       setTimeout(function() {
         ws_connect();
-      }, 1000);
+      }, 5000);
   };
 
   client.onmessage = function(e) {
