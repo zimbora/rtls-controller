@@ -1,6 +1,7 @@
 var W3CWebSocket = require('websocket').w3cwebsocket;
 var settings = require("./config/settings");
 
+var https = require('https');
 const http = require('http')
 var async = require('async')
 
@@ -146,10 +147,16 @@ function readActuators(){
 }
 
 function ws_connect() {
-  client = new W3CWebSocket(settings.ws_domain, 'echo-protocol');
+  client = new W3CWebSocket(
+    settings.ws_domain,
+    ['Bearer', 'xxx'],
+    undefined,
+    undefined,
+    { agent: new https.Agent({rejectUnauthorized: false}) }
+  );
 
-  client.onerror = function() {
-      console.log('Connection Error');
+  client.onerror = function(error) {
+      console.log('Connection Error:',error);
       client.close();
   };
 
@@ -163,7 +170,7 @@ function ws_connect() {
 
   };
 
-  client.onclose = function() {
+  client.onclose = function(code,reason) {
       console.log('WebSocket Client Closed');
       ws.lost_connection();
       setTimeout(function() {
