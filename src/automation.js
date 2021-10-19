@@ -49,6 +49,9 @@ var self = module.exports = {
       options.body = sensor[id].state.get.field
     }
 
+    if(!isValidHttpUrl(sensor[id].state.get.url))
+      return cb({error:true,msg:"url not valid",data:null});
+
     request(options, function (error, response) {
       if (error){
         console.log(error)
@@ -69,10 +72,13 @@ var self = module.exports = {
 
     let actuator = self.actuator;
 
-    if(!id in actuator){
+    if(actuator[id] == null){
       console.log("actuator id: "+id+" not found")
       return;
     }
+
+    if(!isValidHttpUrl(actuator[id].state.get.url))
+      return cb({error:true,msg:"url not valid",data:null});
 
     var options = {
       'method': actuator[id].state.get.method,
@@ -106,27 +112,48 @@ var self = module.exports = {
 
   setState : (id,cb)=>{
 
+    let actuator = self.actuator;
+
+    if(actuator[id] == null){
+      console.log("actuator id: "+id+" not found")
+      return;
+    }
+
     var options = {
-      'method': actuator[id].change.method,
-      'url': actuator[id].change.url,
+      'method': actuator[id].state.change.method,
+      'url': actuator[id].state.change.url,
+      /*
       'headers': {
         header
       },
+      */
     };
 
-    if(actuator[id].change.method != 'GET'){
-      options.body = actuator[id].change.field
+    if(actuator[id].state.change.method != 'GET'){
+      options.body = actuator[id].state.change.field
     }
 
     request(options, function (error, response) {
       if (error){
         console.log(error)
-        return cb(null)
+        return cb({error:true,msg:e,data:null});
       }else{
         let res = JSON.parse(response.body)
-        cb(res);
+        return cb({error:false,msg:"",data:"done"});
       }
     });
   },
 
+}
+
+function isValidHttpUrl(string) {
+  let url;
+
+  try {
+    url = new URL(string);
+  } catch (_) {
+    return false;
+  }
+
+  return url.protocol === "http:" || url.protocol === "https:";
 }
