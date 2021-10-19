@@ -153,7 +153,6 @@ function readActuators(){
 }
 
 function ws_connect() {
-<<<<<<< HEAD
   client = new W3CWebSocket(
     settings.ws_domain,
     ['Bearer', 'xxx'],
@@ -164,12 +163,6 @@ function ws_connect() {
 
   client.onerror = function(error) {
       console.log('Connection Error:',error);
-=======
-  client = new W3CWebSocket(settings.ws_domain, 'echo-protocol');
-
-  client.onerror = function() {
-      //console.log('Connection Error');
->>>>>>> 1340ae0c98ee4764665e6809d6ce4d2c5e8bc0b1
       client.close();
   };
 
@@ -183,13 +176,8 @@ function ws_connect() {
 
   };
 
-<<<<<<< HEAD
-  client.onclose = function(code,reason) {
-      console.log('WebSocket Client Closed');
-=======
   client.onclose = function() {
       //console.log('WebSocket Client Closed');
->>>>>>> 1340ae0c98ee4764665e6809d6ce4d2c5e8bc0b1
       ws.lost_connection();
       setTimeout(function() {
         ws_connect();
