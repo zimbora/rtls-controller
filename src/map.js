@@ -25,9 +25,15 @@ module.exports = {
         }
       };
       request(options, function (error, response) {
-        if (error) throw new Error(error);
-        let res = JSON.parse(response.body)
-        callback(res.Result);
+        //throw new Error(error);
+        if (!error){
+          try{
+            let res = JSON.parse(response.body)
+            return callback(res.Result);
+          }catch(e){
+            return callback(null);
+          }
+        }else return callback(null);
       });
 
     },
@@ -43,9 +49,15 @@ module.exports = {
         }
       };
       request(options, function (error, response) {
-        if (error) throw new Error(error);
-        let res = JSON.parse(response.body)
-        callback(res.Result);
+        //throw new Error(error);
+        if (!error){
+          try{
+            let res = JSON.parse(response.body)
+            return callback(res.Result);
+          }catch(e){
+            return callback(null);
+          }
+        }else return callback(null);
       });
 
     }

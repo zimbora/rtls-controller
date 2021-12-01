@@ -1,3 +1,6 @@
+
+fs = require('fs');
+const wifi = require('node-wifi');
 var W3CWebSocket = require('websocket').w3cwebsocket;
 var settings = require("./config/settings");
 
@@ -11,10 +14,88 @@ var Automation = require("./src/automation");
 
 var client = null;
 
+// Initialize wifi module
+// Absolutely necessary even to set interface to null
+wifi.init({
+  iface: null // network interface, choose a random wifi interface if set to null
+});
+
+
+var settings = {
+  default : {
+    ssid:"inloc",
+    password : "inloc1234567890"
+  }
+};
+
+fs.writeFile("settings.txt", JSON.stringify(settings), ["utf8"], ()=>{
+  fs.readFile("settings.txt",["utf8"],(err,data)=>{
+    if(err) console.log(err);
+    else{
+
+      settings = JSON.parse(data);
+      console.log(settings.default.ssid)
+      console.log(settings.default.password)
+    }
+  });
+});
+
+setInterval(checkConnections,15000);
+
+function checkConnections(){
+  // List the current wifi connections
+  wifi.getCurrentConnections((error, connections) => {
+    if (error) {
+      console.log(error);
+    } else {
+      if(connections.length == 0){
+        console.log("wifi is disconnected..");
+        // Connect to a network
+        if(i%2 == 0 && settings.hasOwnProperty("preference")){
+          wifi.connect({ ssid: settings.preference.ssid, password: settings.preference.password }, () => {
+            console.log('Connected');
+          });
+        }else{
+          wifi.connect({ ssid: settings.default.ssid, password: settings.default.password }, () => {
+            console.log('Connected');
+          });
+        }
+        i++;
+      }else if(connections.length == 1){
+        console.log("wifi is connected to:",connections[0].ssid,connections[0].mac,connections[0].channel,connections[0].signal_level);
+      }else{
+        console.log("wifi have multiple connections..");
+      }
+    }
+  });
+}
+
+// authenticate device - websocket
+// get ssid and password from server
+
+// if available
+  // store on file
+  // connect to network
+  // send router mac address associated to ssid
+// else
+  // scan networks and send info
+/*
+wifi
+  .scan()
+  .then(networks => {
+    console.log(networks);
+    // networks
+  })
+  .catch(error => {
+    // error
+  });
+*/
+/*
 syncMap();
 ws_connect();
 setInterval(readSensors,5000);
 setInterval(readActuators,5000);
+*/
 
 function parseMessage(msg){
 
@@ -96,7 +177,7 @@ function feedDevices(data){
 function syncMap(){
 
   Map.getRooms((res)=>{
-    if(res.length > 0){
+    if(res != null && res.length > 0){
       rooms = JSON.parse(res[0].rooms);
       let i = 0;
       Automation.actuator = {};
