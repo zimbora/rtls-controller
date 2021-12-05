@@ -68,6 +68,7 @@ function parseMessage(msg){
 
   if(msg.hasOwnProperty("error")){
     console.log(msg.error)
+    client.close();
     return;
   }
 
