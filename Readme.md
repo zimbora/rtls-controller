@@ -1,7 +1,13 @@
 # rtls-controller
 
-### run
->> node index.js
+## setup
+
+  1. edit config/secret.js file according to the credentials given to you
+
+  2. run
+    >> node index.js
+
+  3. for docker image see docker tab
 
 ## docker
 
@@ -25,14 +31,3 @@
 
 ### list containers
 >> docker ps
-
-## Before launch program
-  Edit config/env/index
-    Choose:
-      - Development or Production
-
-  Check config/env/(production/development) configurations for
-    - DB options
-    - Ports
-    - debug level
-    - etc.

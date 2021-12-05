@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^3.2.1",
+    "getmac": "^5.20.0",
     "hashcode": "^1.0.3",
     "hashmap": "^2.4.0",
     "http": "0.0.1-security",

@@ -76,8 +76,8 @@ var self = module.exports = {
       console.log("actuator id: "+id+" not found")
       return;
     }
-
-    if(!isValidHttpUrl(actuator[id].state.get.url))
+    
+    if(false && !isValidHttpUrl(actuator[id].state.get.url))
       return cb({error:true,msg:"url not valid",data:null});
 
     var options = {
@@ -146,14 +146,13 @@ var self = module.exports = {
 
 }
 
-function isValidHttpUrl(string) {
+function isValidHttpUrl(path) {
   let url;
 
   try {
-    url = new URL(string);
+    url = new URL({ toString: () => path });
   } catch (_) {
     return false;
   }
-
   return url.protocol === "http:" || url.protocol === "https:";
 }

@@ -1,12 +1,8 @@
 
-var token = "qwe"
-var map_id = 4;
-var uid = "rtl-controller"  // get mac from device
-
 var message = {
   counter: 0,
   to: null,
-  uid: uid,
+  uid: "",
   session: '',
   topic:'',
   data:{},
@@ -30,6 +26,10 @@ function sendMessage (client,message){
 
 var self = module.exports = {
 
+  set_uid : (macAddress)=>{
+    message.uid = macAddress;
+  },
+
   has_connection : ()=>{
     is_connected = true;
   },
@@ -38,14 +38,14 @@ var self = module.exports = {
     is_connected = false;
   },
 
-  authenticate : (client)=>{
+  authenticate : (client,token)=>{
 
     message.counter++;
     message.to = null;
     message.topic = "authenticate"
     message.data = {
       token : token,
-      map_id : map_id
+      map_id : null
     }
 
     sendMessage(client,message);
@@ -56,7 +56,9 @@ var self = module.exports = {
     if(data.authenticated){
       console.log("authenticated")
       message.session = data.session;
-    }else console.log("failed auth")
+      return data.map_id;
+    }else console.log("failed auth");
+    return false;
   },
 
   reportSensor : (client,id,value)=>{
@@ -83,20 +85,12 @@ var self = module.exports = {
     sendMessage(client,message);
   },
 
-  /*
-  // to arg is the destination session
-  answer : (client,to,topic,data){
-
-    let index = topic.lastIndexOf("/")
-    topic = topic.substr(0,index);
+  reportNetworkStatus : (client,status)=>{
     message.counter++;
-    message.to = to;
-    message.topic = "update/sensor/value";
-    message.data = {
-      id:id,
-      value:value
-    };
+    message.to = null;
+    message.topic = "update/network/state"
+    message.data = status;
     sendMessage(client,message);
-  }
-  */
+  },
+
 }

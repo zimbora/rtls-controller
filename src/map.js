@@ -11,54 +11,69 @@ var agentOptions = {
 };
 
 agent = new https.Agent(agentOptions);
+var map_id = null;
+var token = null;
 
 module.exports = {
 
-    getRooms : (callback)=>{
+  set_token : (hash)=>{
+      token = hash;
+  },
 
-      var options = {
-        'method': 'GET',
-        'url': 'https://my.dev.inloc.cloud/api/map/4/rooms',
-        'agent':agent,
-        'headers': {
-          'token': 'zxc'
+  set_map_id : (id)=>{
+      map_id = id;
+  },
+
+  get_map_id : ()=>{
+      return map_id;
+  },
+
+  getRooms : (callback)=>{
+
+    var options = {
+      'method': 'GET',
+      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/rooms',
+      'agent':agent,
+      'headers': {
+        'token': token
+      }
+    };
+    request(options, function (error, response) {
+      //throw new Error(error);
+      if (!error){
+        try{
+          let res = JSON.parse(response.body)
+          return callback(res.Result);
+        }catch(e){
+          return callback(null);
         }
-      };
-      request(options, function (error, response) {
-        //throw new Error(error);
-        if (!error){
-          try{
-            let res = JSON.parse(response.body)
-            return callback(res.Result);
-          }catch(e){
-            return callback(null);
-          }
-        }else return callback(null);
-      });
+      }else return callback(null);
+    });
 
-    },
+  },
 
-    getItemsBySector : (sector,callback)=>{
+  getItemsBySector : (sector,callback)=>{
 
-      var options = {
-        'method': 'GET',
-        'url': 'https://my.dev.inloc.cloud/api/map/4/data/item?sector='+sector,
-        'agent':agent,
-        'headers': {
-          'token': 'zxc'
+    var options = {
+      'method': 'GET',
+      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/data/item?sector='+sector,
+      'agent':agent,
+      'headers': {
+        'token': token
+      }
+    };
+    request(options, function (error, response) {
+      //throw new Error(error);
+      if (!error){
+        try{
+          let res = JSON.parse(response.body)
+          return callback(res.Result);
+        }catch(e){
+          return callback(null);
         }
-      };
-      request(options, function (error, response) {
-        //throw new Error(error);
-        if (!error){
-          try{
-            let res = JSON.parse(response.body)
-            return callback(res.Result);
-          }catch(e){
-            return callback(null);
-          }
-        }else return callback(null);
-      });
+      }else return callback(null);
+    });
 
-    }
+  },
+
 }

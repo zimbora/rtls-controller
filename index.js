@@ -1,8 +1,6 @@
-
-fs = require('fs');
 const wifi = require('node-wifi');
 var W3CWebSocket = require('websocket').w3cwebsocket;
-var settings = require("./config/settings");
+var Settings = require("./config/settings");
 
 var https = require('https');
 const http = require('http')
@@ -13,33 +11,26 @@ var Map = require("./src/map");
 var Automation = require("./src/automation");
 
 var client = null;
+var settings = null;
+let tries = 0;
+let iface = null;
 
-// Initialize wifi module
-// Absolutely necessary even to set interface to null
-wifi.init({
-  iface: null // network interface, choose a random wifi interface if set to null
-});
-
-
-var settings = {
-  default : {
-    ssid:"inloc",
-    password : "inloc1234567890"
-  }
-};
-
-fs.writeFile("settings.txt", JSON.stringify(settings), ["utf8"], ()=>{
-  fs.readFile("settings.txt",["utf8"],(err,data)=>{
-    if(err) console.log(err);
-    else{
-
-      settings = JSON.parse(data);
-      console.log(settings.default.ssid)
-      console.log(settings.default.password)
-    }
+Settings.boot((err)=>{
+  Settings.load((data)=>{
+    settings = data;
+    console.log(settings)
+    wifi.init({
+      iface:settings.iface // network interface, choose a random wifi interface if set to null
+    });
+    //console.log(settings)
+    Map.set_token(settings.api_token);
+    ws_connect();
   });
 });
 
+
+setInterval(readSensors,5000);
+setInterval(readActuators,5000);
 setInterval(checkConnections,15000);
 
 function checkConnections(){
@@ -51,18 +42,21 @@ function checkConnections(){
       if(connections.length == 0){
         console.log("wifi is disconnected..");
         // Connect to a network
-        if(i%2 == 0 && settings.hasOwnProperty("preference")){
-          wifi.connect({ ssid: settings.preference.ssid, password: settings.preference.password }, () => {
-            console.log('Connected');
+        if(tries%2 != 0 && settings.network.length > 1){
+          wifi.connect({ ssid: settings.network[1].ssid, password: settings.network[1].password }, () => {
+            console.log('Connecting to',settings.network[1].ssid);
           });
         }else{
-          wifi.connect({ ssid: settings.default.ssid, password: settings.default.password }, () => {
-            console.log('Connected');
+          wifi.connect({ ssid: settings.network[0].ssid, password: settings.network[0].password }, () => {
+            console.log('Connecting to',settings.network[0].ssid);
           });
         }
-        i++;
+        tries++;
       }else if(connections.length == 1){
         console.log("wifi is connected to:",connections[0].ssid,connections[0].mac,connections[0].channel,connections[0].signal_level);
+        Settings.setIface(connections[0].iface);
+        Settings.save(()=>{});
+        ws.reportNetworkStatus(client,connections);
       }else{
         console.log("wifi have multiple connections..");
       }
@@ -70,41 +64,21 @@ function checkConnections(){
   });
 }
 
-// authenticate device - websocket
-// get ssid and password from server
-
-// if available
-  // store on file
-  // connect to network
-  // send router mac address associated to ssid
-// else
-  // scan networks and send info
-/*
-wifi
-  .scan()
-  .then(networks => {
-    console.log(networks);
-    // networks
-  })
-  .catch(error => {
-    // error
-  });
-*/
-/*
-syncMap();
-ws_connect();
-setInterval(readSensors,5000);
-setInterval(readActuators,5000);
-*/
-
 function parseMessage(msg){
+
+  if(msg.hasOwnProperty("error")){
+    console.log(msg.error)
+    return;
+  }
 
   if(!msg.hasOwnProperty("topic"))
     return;
 
-  if(msg.topic.endsWith("authenticate"))
-    ws.authResponse(msg.data);
-  else if(msg.topic.endsWith("update/keepalive"))
+  if(msg.topic.endsWith("authenticate")){
+    Map.set_map_id(ws.authResponse(msg.data));
+    console.log("map id: "+Map.get_map_id());
+    syncMap();
+  }else if(msg.topic.endsWith("update/keepalive"))
     console.log("keepalive received")
   else if(msg.topic.endsWith("update/location"))
     checkActions(msg.data);
@@ -135,6 +109,31 @@ function parseMessage(msg){
         console.log(response)
       }
     });
+  }else if(msg.topic.endsWith("network/set")){
+    console.log("network set:",msg.data)
+    Settings.setNetwork(msg.data.ssid,msg.data.password,(change)=>{
+      Settings.save(()=>{
+        refresh(()=>{
+          if(!change){
+            return;
+          }
+          wifi.init({
+            iface:settings.iface // network interface, choose a random wifi interface if set to null
+          });
+          wifi.disconnect(error => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Disconnected');
+              wifi.connect({ ssid: msg.data.ssid, password: msg.data.password }, () => {
+                console.log('Connecting to',msg.data.ssid,msg.data.password);
+              });
+            }
+          });
+        });
+      });
+    });
+
   }else{
     console.log(msg.topic)
   }
@@ -189,7 +188,6 @@ function syncMap(){
             if(items != null && items.length > 0){
               items.forEach((item)=>{
                 let data = JSON.parse(item.data);
-                console.log(data)
                 if(data.type == "actuator"){
                   Automation.actuator[item.id] = {
                     state:data,
@@ -243,7 +241,7 @@ function ws_connect() {
   );
 
   client.onerror = function(error) {
-      console.log('Connection Error:',error);
+      //console.log('Connection Error:',error);
       client.close();
   };
 
@@ -252,7 +250,7 @@ function ws_connect() {
 
       if (client.readyState === client.OPEN) {
         ws.has_connection();
-        ws.authenticate(client);
+        ws.authenticate(client,settings.ws_token);
       }
 
   };
@@ -272,4 +270,12 @@ function ws_connect() {
           parseMessage(msg)
       }
   };
+}
+
+function refresh(cb) {
+  Settings.load((data)=>{
+    settings = data;
+    console.log(settings)
+    cb();
+  });
 }
