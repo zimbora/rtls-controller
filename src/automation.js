@@ -1,5 +1,6 @@
 
 var request = require('request');
+var URL = require('url').URL;
 
 var self = module.exports = {
 
@@ -50,7 +51,7 @@ var self = module.exports = {
     }
 
     if(!isValidHttpUrl(sensor[id].state.get.url))
-      return cb({error:true,msg:"url not valid",data:null});
+      return cb({error:true,msg:"url not valid: "+sensor[id].state.get.url+" for id:"+id,data:null});
 
     request(options, function (error, response) {
       if (error){
@@ -60,6 +61,10 @@ var self = module.exports = {
         let res = JSON.parse(response.body)
         try{
           let value = res[sensor[id].state.get.field];
+          if(value === true)
+            value = "on"
+          else if(value === false)
+            value = "off"
           cb({error:false,msg:"",data:value});
         }catch(e){
           cb({error:true,msg:e,data:null});
@@ -76,9 +81,9 @@ var self = module.exports = {
       console.log("actuator id: "+id+" not found")
       return;
     }
-    
-    if(false && !isValidHttpUrl(actuator[id].state.get.url))
-      return cb({error:true,msg:"url not valid",data:null});
+
+    if(!isValidHttpUrl(actuator[id].state.get.url))
+      return cb({error:true,msg:"url not valid: "+actuator[id].state.get.url+" for id: "+id,data:null});
 
     var options = {
       'method': actuator[id].state.get.method,
@@ -96,15 +101,25 @@ var self = module.exports = {
 
     request(options, function (error, response) {
       if (error){
-        console.log(error)
         return cb({error:true,msg:error,data:null})
       }else{
-        let res = JSON.parse(response.body)
+        let res = null;
+        try{
+          res = JSON.parse(response.body)
+        }catch(e){
+          return cb({error:true,msg:e,data:null});
+        }
+
         try{
           let value = res[actuator[id].state.get.field];
-          cb({error:false,msg:"",data:value});
+          //console.log("value:",value)
+          if(value === true)
+            value = "on"
+          else if(value === false)
+            value = "off"
+          return cb({error:false,msg:"",data:value});
         }catch(e){
-          cb({error:true,msg:e,data:null});
+          return cb({error:true,msg:e,data:null});
         }
       }
     });
@@ -138,8 +153,12 @@ var self = module.exports = {
         console.log(error)
         return cb({error:true,msg:e,data:null});
       }else{
-        let res = JSON.parse(response.body)
-        return cb({error:false,msg:"",data:"done"});
+        try{
+          let res = JSON.parse(response.body)
+          return cb({error:false,msg:"",data:"done"});
+        }catch(e){
+          return cb({error:true,msg:e,data:null});
+        }
       }
     });
   },
