@@ -151,7 +151,7 @@ var self = module.exports = {
     request(options, function (error, response) {
       if (error){
         console.log(error)
-        return cb({error:true,msg:e,data:null});
+        return cb({error:true,msg:error,data:null});
       }else{
         try{
           let res = JSON.parse(response.body)
