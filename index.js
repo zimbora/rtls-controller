@@ -104,12 +104,15 @@ function parseMessage(msg){
     });
   }else if(msg.topic.endsWith("actuator/set")){
     console.log("actuator set: "+msg.data.id)
-    Automation.setState(msg.data.id,(response)=>{
-      if(response.error){
-        ws.reportActuatorState(client,msg.data.id,response.data)
-        console.log(response)
-      }
-    });
+    console.log("level: "+msg.level)
+    if(msg.level > 1){
+      Automation.setState(msg.data.id,(response)=>{
+        if(response.error){
+          ws.reportActuatorState(client,msg.data.id,response.data)
+          console.log(response)
+        }
+      });
+    }
   }else if(msg.topic.endsWith("network/set")){
     console.log("network set:",msg.data)
     Settings.setNetwork(msg.data.ssid,msg.data.password,(change)=>{
@@ -136,7 +139,8 @@ function parseMessage(msg){
     });
 
   }else{
-    console.log(msg.topic)
+    //if( !(msg.topic.endsWith("/state") || msg.topic.endsWith("/value")) )
+    console.log(msg.topic, msg.data)
   }
 }
 
