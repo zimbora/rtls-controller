@@ -1,6 +1,7 @@
 
 var request = require('request');
 var URL = require('url').URL;
+var async = require('async');
 
 var self = module.exports = {
 
@@ -35,6 +36,9 @@ var self = module.exports = {
       console.log("sensor id: "+id+" not found")
       return;
     }
+
+    if(sensor[id].state.hasOwnProperty("protocol") && sensor[id].state.protocol == "MQTT")
+      return;
 
     var options = {
       'method': sensor[id].state.get.method,
@@ -81,6 +85,9 @@ var self = module.exports = {
       console.log("actuator id: "+id+" not found")
       return;
     }
+
+    if(actuator[id].state.hasOwnProperty("protocol") && actuator[id].state.protocol == "MQTT")
+      return;
 
     if(!isValidHttpUrl(actuator[id].state.get.url))
       return cb({error:true,msg:"url not valid: "+actuator[id].state.get.url+" for id: "+id,data:null});
@@ -134,35 +141,80 @@ var self = module.exports = {
       return;
     }
 
-    var options = {
-      'method': actuator[id].state.change.method,
-      'url': actuator[id].state.change.url,
-      /*
-      'headers': {
-        header
-      },
-      */
-    };
+    console.log(actuator[id])
+    if(actuator[id].hasOwnProperty("protocol") && actuator[id].protocol == "MQTT"){
+      mqtt_client.publish(actuator[id].mqtt_change.topic,actuator[id].mqtt_change.body)
+    }else{
+      var options = {
+        'method': actuator[id].state.change.method,
+        'url': actuator[id].state.change.url,
+        /*
+        'headers': {
+          header
+        },
+        */
+      };
 
-    if(actuator[id].state.change.method != 'GET'){
-      options.body = actuator[id].state.change.field
+      if(actuator[id].state.change.method != 'GET'){
+        options.body = actuator[id].state.change.field
+      }
+
+      request(options, function (error, response) {
+        if (error){
+          console.log(error)
+          return cb({error:true,msg:error,data:null});
+        }else{
+          try{
+            let res = JSON.parse(response.body)
+            return cb({error:false,msg:"",data:"done"});
+          }catch(e){
+            return cb({error:true,msg:e,data:null});
+          }
+        }
+      });
     }
 
-    request(options, function (error, response) {
-      if (error){
-        console.log(error)
-        return cb({error:true,msg:error,data:null});
-      }else{
-        try{
-          let res = JSON.parse(response.body)
-          return cb({error:false,msg:"",data:"done"});
-        }catch(e){
-          return cb({error:true,msg:e,data:null});
-        }
-      }
-    });
   },
 
+  parseMqttMessages : (topic,payload)=>{
+      let sensor = self.sensor;
+      let actuator = self.actuator;
+
+      async.eachOf(sensor,(s,key,array)=>{
+        if(s.protocol == "MQTT"){
+          if(s.mqtt_get.topic == topic){
+            try{
+              payload = JSON.parse(payload)
+              if(payload.hasOwnProperty(a.mqtt_get.field))
+                self.sensor[key].value = payload[a.mqtt_get.field];
+              else
+                self.sensor[key].value = payload
+            }catch(e){
+              console.log(topic,payload,"notjson")
+            }
+            console.log(key,self.sensor[key].value)
+          }
+        }
+      })
+
+      async.eachOf(actuator,(a,key,array)=>{
+        a = a.state;
+        if(a.protocol == "MQTT"){
+          if(a.mqtt_get.topic == topic){
+            try{
+              payload = JSON.parse(payload)
+              if(payload.hasOwnProperty(a.mqtt_get.field))
+                self.actuator[key].value = payload[a.mqtt_get.field];
+              else
+                self.actuator[key].value = payload
+            }catch(e){
+              console.log(topic,payload,"notjson")
+            }
+            console.log(key,self.actuator[key].value)
+          }
+        }
+      })
+  }
 }
 
 function isValidHttpUrl(path) {

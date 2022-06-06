@@ -12,22 +12,36 @@
 ## docker
 
 ### build
->> docker build -t  rtls-controller .
+>> ./docker_build.sh
 
-### launch container 1st time
->> docker run --name rtls-controller -d rtls-controller
-
-### start container
->> docker start rtls-controller
-
-### stop container
->> docker stop rtls-controller
-
-### restart container
->> docker restart rtls-controller
+### launch or restart container
+>> ./docker_run.sh
 
 ### see logs
 >> docker logs -f rtls-controller
 
 ### list containers
 >> docker ps
+
+
+## State Machine
+
+### Setup
+
+1. check if settings.txt exists, if not create it
+
+2. read settings.txt file and load config
+
+3. Init wifi interface
+
+4. Websocket connect and authenticate
+
+5. Get list of actuators and sensors for each sector for the respective map
+
+### Loop
+
+- read sensors and actuators state
+
+- report sensors and actuators state
+
+- check connections

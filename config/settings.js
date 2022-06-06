@@ -4,8 +4,13 @@ var async = require('async')
 
 fs = require('fs');
 var filename = "settings.txt";
-var secret = require("./secret.js")
 
+var secret;
+if (fs.existsSync("./config/secret.js"))
+  secret = require("./secret.js")
+else
+  secret = require("./secret_edit.js")
+  
 var settings = {
   iface : "",
   ws_domain : "wss://api.dev.inloc.cloud",
@@ -46,8 +51,10 @@ module.exports = {
         console.log(err);
       } else{
         settings = JSON.parse(data);
-        settings.api_token = secret.api_token;
-        settings.ws_token = secret.ws_token;
+        settings.api_token = process.env.api_token || secret.api_token;
+        settings.ws_token = process.env.ws_token || secret.ws_token;
+        console.log("api token:",settings.api_token)
+        console.log("ws token:",settings.ws_token)
       }
       return cb(settings)
     });

@@ -5,15 +5,21 @@ var Settings = require("./config/settings");
 var https = require('https');
 const http = require('http')
 var async = require('async')
+const mqtt = require('mqtt')
 
 var ws = require("./src/ws.js");
 var Map = require("./src/map");
 var Automation = require("./src/automation");
 
 var client = null;
+var mqtt_client  = null;
 var settings = null;
-let tries = 0;
-let iface = null;
+var tries = 0;
+var iface = null;
+var macAddress = "00:00:00:00:00:00";
+
+//console.log("version:",process.env.NODE_VERSION)
+//console.log("hostname:",process.env.HOSTNAME)
 
 Settings.boot((err)=>{
   Settings.load((data)=>{
@@ -22,6 +28,7 @@ Settings.boot((err)=>{
     wifi.init({
       iface:settings.iface // network interface, choose a random wifi interface if set to null
     });
+    checkConnections();
     //console.log(settings)
     Map.set_token(settings.api_token);
     ws_connect();
@@ -29,8 +36,8 @@ Settings.boot((err)=>{
 });
 
 
-setInterval(readSensors,5000);
-setInterval(readActuators,5000);
+setInterval(readSensors,30000);
+setInterval(readActuators,60000);
 setInterval(checkConnections,15000);
 
 function checkConnections(){
@@ -49,22 +56,27 @@ function checkConnections(){
         }else{
           wifi.connect({ ssid: settings.network[0].ssid, password: settings.network[0].password }, () => {
             console.log('Connecting to',settings.network[0].ssid);
+            wifi.getCurrentConnections((error, connections) => {
+              if(!error && connections.length > 0)
+                macAddress = connections[0].mac;
+            });
           });
         }
         tries++;
-      }else if(connections.length == 1){
+      }else if(connections.length > 0){
         console.log("wifi is connected to:",connections[0].ssid,connections[0].mac,connections[0].channel,connections[0].signal_level);
+        macAddress = connections[0].mac;
         Settings.setIface(connections[0].iface);
         Settings.save(()=>{});
         ws.reportNetworkStatus(client,connections);
-      }else{
-        console.log("wifi have multiple connections..");
+        if(connections.length > 1)
+          console.log("wifi have multiple connections..");
       }
     }
   });
 }
 
-function parseMessage(msg){
+parseMessage = (msg)=>{
 
   if(msg.hasOwnProperty("error")){
     console.log(msg.error)
@@ -78,14 +90,33 @@ function parseMessage(msg){
   if(msg.topic.endsWith("authenticate")){
     Map.set_map_id(ws.authResponse(msg.data));
     console.log("map id: "+Map.get_map_id());
-    syncMap();
+
+    syncMap(()=>{
+      Map.getMqttConfig((err,res)=>{
+        console.log("map synced")
+        if(err) console.log(err)
+        else mqtt_connect(JSON.parse(res));
+      })
+    });
+
+
   }else if(msg.topic.endsWith("update/keepalive"))
     console.log("keepalive received")
   else if(msg.topic.endsWith("update/location"))
     checkActions(msg.data);
-  else if(msg.topic.endsWith("update/automation")){
+  else if(msg.topic.endsWith("automation/refresh")){
     console.log("update sensors and actuators");
-    syncMap();
+    syncMap(()=>{});
+  }else if(msg.topic.endsWith("automation/report")){
+    console.log("reporting automation state")
+    async.forEachOf(Automation.sensor,(s,key,next)=>{
+      ws.reportSensor(client,key,s.value)
+      next();
+    });
+    async.forEachOf(Automation.actuator,(a,key,next)=>{
+      ws.reportActuatorState(client,key,a.value)
+      next();
+    });
   }else if(msg.topic.endsWith("sensor/get")){
     console.log("getting sensor value: "+msg.data.id)
     Automation.getSensorValue(msg.data.id,(response)=>{
@@ -178,12 +209,11 @@ function feedDevices(data){
 
 }
 
-function syncMap(){
+function syncMap (cb){
 
   Map.getRooms((res)=>{
     if(res != null && res.length > 0){
       rooms = JSON.parse(res[0].rooms);
-      let i = 0;
       Automation.actuator = {};
       Automation.sensor = {};
       // updating devices automation
@@ -207,7 +237,7 @@ function syncMap(){
             next();
           });
         }else next();
-      });
+      },()=>{cb()});
     }
   })
 }
@@ -216,6 +246,7 @@ function readSensors(){
 
   async.forEachOf(Automation.sensor,(s,key,next)=>{
     Automation.getSensorValue(key,(response)=>{
+      Automation.sensor[key].value = response.data;
       if(!response.error)
         ws.reportSensor(client,key,response.data)
       else console.log(response)
@@ -228,11 +259,20 @@ function readActuators(){
 
   async.forEachOf(Automation.actuator,(a,key,next)=>{
     Automation.getState(key,(response)=>{
+      Automation.actuator[key].value = response.data;
       if(!response.error)
         ws.reportActuatorState(client,key,response.data)
       else console.log(response)
       next();
     });
+  });
+}
+
+function refresh(cb) {
+  Settings.load((data)=>{
+    settings = data;
+    console.log(settings)
+    cb();
   });
 }
 
@@ -277,10 +317,52 @@ function ws_connect() {
   };
 }
 
-function refresh(cb) {
-  Settings.load((data)=>{
-    settings = data;
-    console.log(settings)
-    cb();
+function mqtt_connect(config){
+
+  console.log(config)
+  mqtt_client = mqtt.connect({
+    host: config.host,
+    port:config.port,
+    username:config.user,
+    password:config.password,
+    will:{
+      topic:"map/"+Map.get_map_id()+"/rtls-controller/"+macAddress+"/status",
+      payload:"offline",
+      qos:0,
+      retain:true
+    }
+
   });
+
+  mqtt_client.on('connect', function () {
+    console.log("MQTT connected successfully");
+
+    mqtt_client.subscribe('#', function (err) {
+      if(err) console.log(err);
+      else{
+        mqtt_client.publish("map/"+Map.get_map_id()+"/rtls-controller/"+macAddress+"/status","online")
+        //mqtt_client.publish("map/"+Map.get_map_id()+"/rtls-controller/"+macAddress+"/status",JSON.stringify({version:process.env.NODE_VERSION}))
+      }
+    })
+
+  })
+
+  mqtt_client.on('message', function (topic, message) {
+    topic = String(topic);
+    message = String(message);
+    if(!topic.startsWith("map/"+Map.get_map_id()+"pos")){
+      Automation.parseMqttMessages(topic,message);
+    }
+
+  })
+
+  mqtt_client.on('error', function (error) {
+    console.log(error)
+    //MQTT.parse(topic,message);
+  })
+
+  mqtt_client.on('close', function (error) {
+    console.log(error)
+    //MQTT.parse(topic,message);
+  })
 }

@@ -76,4 +76,26 @@ module.exports = {
 
   },
 
+  getMqttConfig : (callback)=>{
+
+    var options = {
+      'method': 'GET',
+      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/mqtt',
+      'agent':agent,
+      'headers': {
+        'token': token
+      }
+    };
+    request(options, function (error, response) {
+      //throw new Error(error);
+      if (!error){
+        try{
+          let res = JSON.parse(response.body)
+          return callback(null,res.Result);
+        }catch(e){
+          return callback(e,null);
+        }
+      }else return callback(error,null);
+    });
+  }
 }

@@ -35,10 +35,15 @@
 -       message.to = "controller"
         message.topic = "update/keepalive"
 
-### update automation (sensors and actuators)
+### refresh automation (sensors and actuators)
 
 -       message.to = "controller"
-        message.topic = "update/automation"
+        message.topic = "automation/refresh"
+
+### report automation (sensors and actuators)
+
+-       message.to = "controller"
+        message.topic = "automation/report"
 
 ### sensor get value
 
