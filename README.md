@@ -43,12 +43,13 @@ Download external files for rest service
 
 3. Get map info
 
-If map found
-  3.1. Init wifi interface
+  If map found:
+  
+    3.1. Init wifi interface
 
-  3.2. Websocket connect and authenticate
+    3.2. Websocket connect and authenticate
 
-  3.3. Mqtt connect and authenticate
+    3.3. Mqtt connect and authenticate
 
 4. Get list of actuators and sensors for each sector for the respective map
 
