@@ -8,6 +8,8 @@ var message = {
   data:{},
 };
 
+var token = "";
+
 var is_connected = false;
 
 function sendMessage (client,message){
@@ -30,6 +32,14 @@ var self = module.exports = {
     message.uid = macAddress;
   },
 
+  set_token : (ws_token)=>{
+    token = ws_token;
+  },
+
+  isConnected : ()=>{
+    return is_connected;
+  },
+
   has_connection : ()=>{
     is_connected = true;
   },
@@ -38,16 +48,20 @@ var self = module.exports = {
     is_connected = false;
   },
 
-  authenticate : (client,token)=>{
+  authenticate : (client,version,env)=>{
 
     message.counter++;
     message.to = null;
     message.topic = "authenticate"
     message.data = {
       token : token,
+      type: "controller",
+      version: version,
+      env: env,
       map_id : null
     }
 
+    //console.log(message)
     sendMessage(client,message);
   },
 

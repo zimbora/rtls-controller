@@ -3,29 +3,28 @@ const getmac = require('getmac')
 var async = require('async')
 
 fs = require('fs');
-var filename = "settings.txt";
+var filename = process.env.DATA_PATH || "./settings.txt";
 
-var secret;
-if (fs.existsSync("./config/secret.js"))
-  secret = require("./secret.js")
-else
-  secret = require("./secret_edit.js")
-  
 var settings = {
   iface : "",
   ws_domain : "wss://api.dev.inloc.cloud",
   api : "my.dev.inloc.cloud",
+  map : {
+    id : null,
+    name : "NA",
+    level : null
+  },
   network : [{
     ssid:"Inloc",
     password : "inloc123456789"
-  }]
+  }],
+  api_token : "get it from my.inloc.cloud/map/:id/edit-settings"
 }
 
 module.exports = {
   boot : (cb)=>{
-    const path = './'+filename;
     try {
-      if (fs.existsSync(path)) {
+      if (fs.existsSync(filename)) {
         //file exists
         return cb(false);
       }else{
@@ -39,10 +38,13 @@ module.exports = {
     }
   },
   save : (cb)=>{
-    settings.uid = getmac.default();
+    if(settings.uid == null)
+      settings.uid = getmac.default();
+    settings.version = process.env.VERSION || "dev";
+    settings.node_version = process.env.NODE_VERSION || "dev";
     fs.writeFile(filename, JSON.stringify(settings), ["utf8"], (err)=>{
       if(err) console.log(err)
-      return cb();
+      return cb(err);
     });
   },
   load : (cb)=>{
@@ -50,11 +52,11 @@ module.exports = {
       if(err){
         console.log(err);
       } else{
-        settings = JSON.parse(data);
-        settings.api_token = process.env.api_token || secret.api_token;
-        settings.ws_token = process.env.ws_token || secret.ws_token;
-        console.log("api token:",settings.api_token)
-        console.log("ws token:",settings.ws_token)
+        try{
+          settings = JSON.parse(data);
+        }catch(e){
+          console.log("error reading file",e)
+        }
       }
       return cb(settings)
     });
@@ -75,6 +77,18 @@ module.exports = {
   },
   setIface : (iface)=>{
     settings.iface = iface;
+  },
+  setAPIToken : (token,cb)=>{
+    settings.api_token = token;
+    cb();
+  },
+  setMapInfo : (id,name,level,cb)=>{
+    settings.map = {
+      id : id,
+      name : name,
+      level : level
+    }
+    cb();
   }
 
 };

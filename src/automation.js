@@ -8,6 +8,7 @@ var self = module.exports = {
   actuator : [],
   sensor : [],
 
+  // not used
   makeRequest : (method,url,header,cb)=>{
 
     var options = {
@@ -34,11 +35,11 @@ var self = module.exports = {
 
     if(sensor[id] == null){
       console.log("sensor id: "+id+" not found")
-      return;
+      return cb({error:true,msg:"id not found",data:null})
     }
 
     if(sensor[id].state.hasOwnProperty("protocol") && sensor[id].state.protocol == "MQTT")
-      return;
+      return cb({error:true,msg:"mqtt sensor",data:null})
 
     var options = {
       'method': sensor[id].state.get.method,
@@ -69,9 +70,9 @@ var self = module.exports = {
             value = "on"
           else if(value === false)
             value = "off"
-          cb({error:false,msg:"",data:value});
+          return cb({error:false,msg:"",data:value});
         }catch(e){
-          cb({error:true,msg:e,data:null});
+          return cb({error:true,msg:e,data:null});
         }
       }
     });
@@ -83,11 +84,11 @@ var self = module.exports = {
 
     if(actuator[id] == null){
       console.log("actuator id: "+id+" not found")
-      return;
+      return cb({error:true,msg:"id not found",data:null})
     }
 
     if(actuator[id].state.hasOwnProperty("protocol") && actuator[id].state.protocol == "MQTT")
-      return;
+      return cb({error:true,msg:"mqtt actuator",data:null})
 
     if(!isValidHttpUrl(actuator[id].state.get.url))
       return cb({error:true,msg:"url not valid: "+actuator[id].state.get.url+" for id: "+id,data:null});
@@ -138,7 +139,7 @@ var self = module.exports = {
 
     if(actuator[id] == null){
       console.log("actuator id: "+id+" not found")
-      return;
+      return cb({error:true,msg:"actuator id not found",data:null});
     }
 
     console.log(actuator[id])

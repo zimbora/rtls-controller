@@ -1,13 +1,18 @@
 # rtls-controller
 
+## TODO
+
+generate uid using:
+
+    const crypto = require('crypto');
+    console.log(crypto.randomUUID());
+    
 ## setup
 
-  1. edit config/secret.js file according to the credentials given to you
-
-  2. run
+  1. run
     >> node index.js
 
-  3. for docker image see docker tab
+  2. for docker image see docker tab
 
 ## docker
 

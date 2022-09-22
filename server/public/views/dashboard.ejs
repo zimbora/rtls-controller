@@ -1,0 +1,266 @@
+<!--
+
+=========================================================
+* Now UI Dashboard PRO - v1.5.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/now-ui-dashboard-pro
+* Copyright 2019 Creative Tim (http://www.creative-tim.com)
+
+* Designed by www.invisionapp.com Coded by www.creative-tim.com
+
+=========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="./assets/font-awesome-4.7.0/css/font-awesome.min.css">
+
+
+<style>
+
+.container-center {
+  margin: auto;
+  width: 50%;
+  padding: 10px;
+}
+
+.center {
+  text-align: center;
+  padding: 15px;
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-group-addon {
+  border: none;
+}
+
+#copyButton {
+  cursor: pointer;
+  background: #f1bb3a;
+}
+
+.circle-offline {
+  width: 20px;
+  height: 20px;
+  background: red;
+  border-radius: 50%
+}
+
+.circle-online {
+  width: 20px;
+  height: 20px;
+  background: green;
+  border-radius: 50%
+}
+
+</style>
+
+<head>
+
+  <nav class="navbar navbar-light bg-light">
+    <div class="container-fluid container-center">
+      <a class="navbar-brand" href="#">
+        <img src="" alt="" width="30" height="24" class="d-inline-block align-text-top">
+        Inloc
+      </a>
+
+      <a class="navbar center">
+        <label for="device_ip"><%= system.wifi.ip %></label>
+      </a>
+
+      <div class="dropdown">
+        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+          <i class="fa fa-ellipsis-v"></i>
+        </button>
+        <!--
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+
+          </button>
+        -->
+        <ul class="dropdown-menu dropdown-menu-lg-end" aria-labelledby="dropdownMenuButton1">
+          <li><a class="dropdown-item" href="#">Action</a></li>
+          <div class="dropdown-divider"></div>
+          <li><a class="dropdown-item" id="restart" href="#">restart</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+
+
+</nav>
+
+</head>
+
+<body>
+
+  <div class="container-fluid container-center">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="row">
+          <div class="col-sm-4 form-group">
+            <div class="form-check">
+              <% if(system.api.connected){ %>
+                <input class="form-check-input circle-online" value="" id="api_status">
+              <% }else{ %>
+                <input class="form-check-input circle-offline" value="" id="api_status">
+              <% } %>
+              <label>API</label>
+            </div>
+          </div>
+          <div class="col-sm-4 form-group">
+            <div class="form-check">
+              <% if(system.ws.connected){ %>
+                <input class="form-check-input circle-online" value="" id="ws_status">
+              <% }else{ %>
+                <input class="form-check-input circle-offline" value="" id="ws_status">
+              <% } %>
+              <label>WebSocket</label>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-check">
+              <% if(system.mqtt.connected){ %>
+                <input class="form-check-input circle-online" value="" id="mqtt_status">
+              <% }else{ %>
+                <input class="form-check-input circle-offline" value="" id="mqtt_status">
+              <% } %>
+
+              <label>MQTT</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+
+        <div class="row">
+          <div class="col-sm-12 center">
+            <label for="map_name"><b><%= settings.map.name %> : <%= settings.map.level %></b></label>
+          </div>
+        </div>
+
+        <div class="row">
+
+          <div class="col-sm-6">
+            <label for="ssid" class="form-label">Connected to:</label>
+            <input disabled type="text" class="form-control" id="ssid" placeholder="<%= system.wifi.ssid %>">
+          </div>
+          <div class="col-sm-6">
+            <label for="uid" class="form-label">uid:</label>
+            <div class="input-group">
+              <input readonly="readonly" type="text" class="form-control" id="uid" value="<%= system.wifi.macAddress %>">
+              <span id="copyButton" class="input-group-addon btn" title="Click to copy">
+                <i class="fa fa-clipboard" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <br></br>
+
+        <div class="row">
+          <div class="col-sm-12">
+            <label for="api_token" class="form-label">API Token</label>
+            <input type="text" class="form-control" id="api_token" placeholder="<%= settings.api_token %>" value="<%= settings.api_token %>">
+            <button id="update_token" type="button" class="btn btn-primary">update</button>
+          </div>
+        </div>
+
+        <br></br>
+
+        <div class="row">
+          <div class="col-sm-6">
+            <label for="app_version" class="form-label">app version</label>
+            <input disabled type="text" class="form-control" id="app_version" placeholder="<%= settings.version %>">
+          </div>
+          <div class="col-sm-6">
+            <label for="node_version" class="form-label">node version</label>
+            <input disabled type="text" class="form-control" id="node_version" placeholder="<%= settings.node_version %>">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    $(document).ready(function(){
+
+    });
+
+    $("#restart").click(()=>{
+      console.log("restart service")
+      let host = window.location.host;
+      $.ajax({
+        url : '/api/restart',type: 'PUT',
+        data : {},
+        success: function(data,status,xhr){
+          if(!status == "success")
+            console.log(status);
+          else console.log(data)
+        },
+        error: function(data,status,xhr){
+          console.log(status)
+        },
+        dataType : "JSON"
+      });
+
+    });
+
+    $("#copyButton").click(()=>{
+      /* Get the text field */
+      var copyText = document.getElementById("uid");
+      /* Select the text field */
+      copyText.select();
+      copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+       /* Copy the text inside the text field */
+       // only works on https or localhost
+      navigator.clipboard.writeText(copyText.value);
+
+    })
+
+    $("#update_token").click(()=>{
+
+      let token = $("#api_token").val();
+      let host = window.location.host;
+      $.ajax({
+        url : '/api/token',type: 'PUT',
+        data : {
+          token:token,
+        },
+        success: function(data,status,xhr){
+          if(!status == "success")
+            console.log(status);
+          else console.log(data)
+        },
+        error: function(data,status,xhr){
+          console.log(status)
+        },
+        dataType : "JSON"
+      });
+
+    });
+
+  </script>
+</body>
+
+</html>
