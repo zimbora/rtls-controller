@@ -31,6 +31,7 @@ app.use(cookieParser());
 app.set('view engine', 'ejs');  // set the view engine to ejs
 
 app.use('*/assets',express.static(config.public_path+'/assets'))
+app.use('*/logo',express.static(config.public_path+'/logo'))
 /*
 app.use((req,res,next) => {
   var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;

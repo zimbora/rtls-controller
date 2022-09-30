@@ -38,8 +38,10 @@ module.exports = {
     }
   },
   save : (cb)=>{
-    if(settings.uid == null)
-      settings.uid = getmac.default();
+    if(settings.uid == null || settings.uid == "02:42:ac:11:00:02"){
+      //settings.uid = getmac.default();
+      settings.uid = crypto.randomUUID();
+    }
     settings.version = process.env.VERSION || "dev";
     settings.node_version = process.env.NODE_VERSION || "dev";
     fs.writeFile(filename, JSON.stringify(settings), ["utf8"], (err)=>{
