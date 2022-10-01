@@ -1,6 +1,5 @@
 const wifi = require('node-wifi');
 const network = require("node-network-manager");
-const crypto = require('crypto');
 
 var W3CWebSocket = require('websocket').w3cwebsocket;
 
@@ -62,7 +61,7 @@ var self = module.exports = {
             ws.set_uid(settings.uid);
             ws.set_token(token);
             self.ws_connect();
-          }else console.log("error:",error)
+          }else console.log("error getting ws token:",error)
         })
         //System.wifi.macAddress = settings.uid;
       });

@@ -3,10 +3,9 @@ module.exports = {
   debug:{
     level: "debug"
   },
-  domain: "my.dev.inloc.cloud",
-  colector: "http://colector.dev.inloc.cloud",
-  web_port: 20080,
+  domain: process.env.host || 'my.dev.inloc.cloud',
+  web_port: process.env.port || 20080,
   public_path:  '/opt/app/server/public',
-  jwtSecret: 'my-local-app-secret',
+  jwtSecret: process.env.jwtSecret || 'my-local-app-secret',
   jwtDuration: '2 hours'
 };

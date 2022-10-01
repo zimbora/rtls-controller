@@ -1,14 +1,16 @@
 const wifi = require('node-wifi');
 const getmac = require('getmac')
 var async = require('async')
+const crypto = require('crypto');
+var config = require('../config/env');
 
 fs = require('fs');
 var filename = process.env.DATA_PATH || "./settings.txt";
 
 var settings = {
   iface : "",
-  ws_domain : "wss://api.dev.inloc.cloud",
-  api : "my.dev.inloc.cloud",
+  ws_domain : "wss://"+config.domain,
+  api : config.domain,
   map : {
     id : null,
     name : "NA",
@@ -38,6 +40,7 @@ module.exports = {
     }
   },
   save : (cb)=>{
+
     if(settings.uid == null || settings.uid == "02:42:ac:11:00:02"){
       //settings.uid = getmac.default();
       settings.uid = crypto.randomUUID();
@@ -62,6 +65,9 @@ module.exports = {
       }
       return cb(settings)
     });
+  },
+  reset : (cb)=>{
+    fs.unlink(filename, cb);
   },
   setNetwork : (ssid,pass,cb)=>{
     let network = {

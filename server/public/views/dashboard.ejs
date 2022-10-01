@@ -98,6 +98,7 @@
           <li><a class="dropdown-item" href="#">Action</a></li>
           <div class="dropdown-divider"></div>
           <li><a class="dropdown-item" id="restart" href="#">restart</a></li>
+          <li><a class="dropdown-item" id="reset" href="#">reset</a></li>
         </ul>
       </div>
 
@@ -225,7 +226,26 @@
         },
         dataType : "JSON"
       });
+      location.reload();
+    });
 
+    $("#reset").click(()=>{
+      console.log("reset configs")
+      let host = window.location.host;
+      $.ajax({
+        url : '/api/reset',type: 'PUT',
+        data : {},
+        success: function(data,status,xhr){
+          if(!status == "success")
+            console.log(status);
+          else console.log(data)
+        },
+        error: function(data,status,xhr){
+          console.log(status)
+        },
+        dataType : "JSON"
+      });
+      location.reload();
     });
 
     $("#copyButton").click(()=>{

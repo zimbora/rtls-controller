@@ -135,6 +135,14 @@ app.put('/api/restart',(req,res,next)=>{
   process.exit(1)
 });
 
+app.put('/api/reset',(req,res,next)=>{
+
+  console.log("deleting configs");
+  Settings.reset(()=>{
+    process.exit(1);
+  })
+});
+
 app.use((err, req, res, next) => {
 
   if (err instanceof expressValidation.ValidationError) {

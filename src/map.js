@@ -2,9 +2,10 @@
 var request = require('request');
 var https = require('https');
 var settings = require("../config/settings");
+var config = require('../config/env');
 
 var agentOptions = {
-  host: process.env.host || 'my.dev.inloc.cloud'
+  host: config.domain
 , port: '443'
 , path: '/'
 , rejectUnauthorized: false
@@ -32,7 +33,7 @@ module.exports = {
 
     var options = {
       'method': 'GET',
-      'url': 'https://my.dev.inloc.cloud/api/api-status',
+      'url': 'https://'+config.domain+'/api/api-status',
       'agent':agent,
       'headers': {
         'controllertoken': token
@@ -59,7 +60,7 @@ module.exports = {
 
     var options = {
       'method': 'GET',
-      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/info',
+      'url': 'https://'+config.domain+'/api/map/'+map_id+'/info',
       'agent':agent,
       'headers': {
         'controllertoken': token
@@ -85,7 +86,7 @@ module.exports = {
 
     var options = {
       'method': 'GET',
-      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/rooms',
+      'url': 'https://'+config.domain+'/api/map/'+map_id+'/rooms',
       'agent':agent,
       'headers': {
         'controllertoken': token
@@ -112,7 +113,7 @@ module.exports = {
 
     var options = {
       'method': 'GET',
-      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/data/item?sector='+sector,
+      'url': 'https://'+config.domain+'/api/map/'+map_id+'/data/item?sector='+sector,
       'agent':agent,
       'headers': {
         'controllertoken': token
@@ -139,7 +140,7 @@ module.exports = {
 
     var options = {
       'method': 'GET',
-      'url': 'https://my.dev.inloc.cloud/api/map/'+map_id+'/mqtt',
+      'url': 'https://'+config.domain+'/api/map/'+map_id+'/mqtt',
       'agent':agent,
       'headers': {
         'controllertoken': token
@@ -165,7 +166,7 @@ module.exports = {
 
     var options = {
       'method': 'GET',
-      'url': 'https://my.dev.inloc.cloud/api/controllers/ws_token?uid='+uid,
+      'url': 'https://'+config.domain+'/api/controllers/ws_token?uid='+uid,
       'agent':agent,
       'headers': {
         'controllertoken': token
@@ -175,9 +176,12 @@ module.exports = {
       //throw new Error(error);
       if (!error){
         try{
-          let res = JSON.parse(response.body)
-          console.log("uid:",uid);
-          console.log(res);
+          let res = null;
+          try{
+            res = JSON.parse(response.body)
+          }catch(e){
+            console.log(e);
+          }
           if(response.statusCode != 200)
             return callback(res.message,null);
           else
