@@ -217,6 +217,7 @@ var self = module.exports = {
   },
 
   ws_connect : ()=>{
+    console.log(settings.ws_domain);
     client = new W3CWebSocket(
       settings.ws_domain,
       ['Bearer', 'xxx'],

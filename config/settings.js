@@ -9,7 +9,7 @@ var filename = process.env.DATA_PATH || "./settings.txt";
 
 var settings = {
   iface : "",
-  ws_domain : "wss://"+config.domain,
+  ws_domain : "wss://"+config.ws_domain,
   api : config.domain,
   map : {
     id : null,
