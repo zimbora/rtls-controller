@@ -78,7 +78,7 @@ var self = module.exports = {
           console.log("wifi is disconnected..");
           Settings.save(()=>{});
           // Connect to a network
-          if(tries%2 != 0 && settings.network.length > 1){
+          if(tries%2 != 0){
             wifi.connect({ ssid: settings.network[1].ssid, password: settings.network[1].password }, () => {
               console.log('Connecting to',settings.network[1].ssid);
               wifi.getCurrentConnections((error, connections) => {
@@ -361,6 +361,34 @@ parseMessage = (msg)=>{
 
     System.ws.connected = true;
     Map.set_map_id(ws.authResponse(msg.data));
+
+    Map.getWiFiCredentials((err,res)=>{
+      if(!err && res != null){
+        if(res.length > 0 && res[0].ssid != "" && res[0].password != ""){
+          console.log("wifi credentials:",res[0]);
+          Settings.setNetwork(res[0].ssid,res[0].password,(err)=>{
+            if(System.wifi.ssid != Settings.getSSID()){
+              wifi.init({
+                iface:settings.iface // network interface, choose a random wifi interface if set to null
+              });
+              wifi.disconnect(error => {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Disconnected');
+                  wifi.connect({ ssid: res[0].ssid, password: res[0].password }, () => {
+                    console.log('Connecting to',res[0].ssid,res[0].password);
+                  });
+                }
+              });
+            }
+          });
+        }
+      }else if(res == null)
+        console.log("no wifi credentials retrieved");
+      else console.log("Error getting wifi credentials..",err);
+    })
+
     Map.getInfo((error,res)=>{
       if(!error && res != null && res.length > 0){
         Settings.setMapInfo(Map.get_map_id(),res[0].name,res[0].level,()=>{
@@ -435,27 +463,22 @@ parseMessage = (msg)=>{
     }
   }else if(msg.topic.endsWith("network/set")){
     console.log("network set:",msg.data)
-    Settings.setNetwork(msg.data.ssid,msg.data.password,(change)=>{
-      Settings.save(()=>{
-        refresh(()=>{
-          if(!change){
-            return;
-          }
-          wifi.init({
-            iface:settings.iface // network interface, choose a random wifi interface if set to null
-          });
-          wifi.disconnect(error => {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log('Disconnected');
-              wifi.connect({ ssid: msg.data.ssid, password: msg.data.password }, () => {
-                console.log('Connecting to',msg.data.ssid,msg.data.password);
-              });
-            }
-          });
+    Settings.setNetwork(msg.data.ssid,msg.data.password,(err)=>{
+      if(System.wifi.ssid != Settings.getSSID()){
+        wifi.init({
+          iface:settings.iface // network interface, choose a random wifi interface if set to null
         });
-      });
+        wifi.disconnect(error => {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log('Disconnected');
+            wifi.connect({ ssid: msg.data.ssid, password: msg.data.password }, () => {
+              console.log('Connecting to',msg.data.ssid,msg.data.password);
+            });
+          }
+        });
+      }
     });
 
   }else{

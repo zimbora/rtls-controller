@@ -16,4 +16,4 @@ core.init();
 
 setInterval(core.readSensors,30000);
 setInterval(core.readActuators,60000);
-setInterval(core.checkConnections,15000);
+setInterval(core.checkConnections,30000);

@@ -3,6 +3,10 @@ module.exports = {
   debug:{
     level: "debug"
   },
+  wifi:{
+    ssid:"Inloc",
+    password:"inloc123456789"
+  },
   domain: "my.dev.inloc.cloud",
   ws_domain: "api.dev.inloc.cloud",
   web_port: 20080,

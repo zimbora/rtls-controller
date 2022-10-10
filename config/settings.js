@@ -17,13 +17,16 @@ var settings = {
     level : null
   },
   network : [{
-    ssid:"Inloc",
-    password : "inloc123456789"
+    ssid:"",
+    password:""
+  },{
+    ssid:config.wifi.ssid,
+    password : config.wifi.password
   }],
   api_token : "get it from my.inloc.cloud/map/:id/edit-settings"
 }
 
-module.exports = {
+var self = module.exports = {
   boot : (cb)=>{
     try {
       if (fs.existsSync(filename)) {
@@ -70,18 +73,11 @@ module.exports = {
     fs.unlink(filename, cb);
   },
   setNetwork : (ssid,pass,cb)=>{
-    let network = {
-      ssid:ssid,
-      password:pass
-    };
-    if(settings.network.length == 1){
-      settings.network.push(network);
-      return cb(true);
-    }else{
-      if(settings.network[1].ssid == ssid && settings.network[1].pasword == pass)
-        return cb(false);
-      else return cb(true);
-    }
+
+    settings.network[0].ssid = ssid ;
+    settings.network[0].password = pass;
+
+    self.save(cb)
   },
   setIface : (iface)=>{
     settings.iface = iface;
@@ -97,6 +93,8 @@ module.exports = {
       level : level
     }
     cb();
+  },
+  getSSID : ()=>{
+    return settings.network[0].ssid;
   }
-
 };

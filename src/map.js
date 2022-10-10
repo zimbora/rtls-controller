@@ -191,5 +191,31 @@ module.exports = {
         }
       }else return callback(error,null);
     });
+  },
+
+  getWiFiCredentials : (callback)=>{
+
+    var options = {
+      'method': 'GET',
+      'url': 'https://'+config.domain+'/api/map/'+map_id+'/wifi/credentials',
+      'agent':agent,
+      'headers': {
+        'controllertoken': token
+      }
+    };
+    request(options, function (error, response) {
+      //throw new Error(error);
+      if (!error){
+        try{
+          let res = JSON.parse(response.body)
+          if(response.statusCode != 200)
+            return callback(res.message,null);
+          else
+            return callback(res.Error,res.Result);
+        }catch(e){
+          return callback(e,null);
+        }
+      }else return callback(error,null);
+    });
   }
 }
