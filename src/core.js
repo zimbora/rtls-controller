@@ -423,7 +423,7 @@ parseMessage = (msg)=>{
     checkActions(msg.data);
   else if(msg.topic.endsWith("automation/refresh")){
     console.log("update sensors and actuators");
-    syncMap(()=>{});
+    self.syncMap(()=>{});
   }else if(msg.topic.endsWith("automation/report")){
     console.log("reporting automation state")
     async.forEachOf(Automation.sensor,(s,key,next)=>{

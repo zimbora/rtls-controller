@@ -109,6 +109,25 @@ app.use('/',(req,res,next)=>{
   next();
 })
 
+app.get('/api/token',(req,res,next)=>{
+
+  Settings.getAPIToken((token)=>{
+    if(token.includes("my.inloc.cloud/map/:id/edit-settings")){
+      res.status(200).json({
+        Error: false,
+        Message: "token not defined",
+        Result : null
+      });
+    }else{
+      res.status(200).json({
+        Error: false,
+        Message: "token",
+        Result : token
+      });
+    }
+  })
+});
+
 app.put('/api/token',(req,res,next)=>{
 
   Settings.setAPIToken(req.body.token,()=>{

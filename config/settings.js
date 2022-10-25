@@ -82,6 +82,9 @@ var self = module.exports = {
   setIface : (iface)=>{
     settings.iface = iface;
   },
+  getAPIToken : (cb)=>{
+    cb(settings.api_token);
+  },
   setAPIToken : (token,cb)=>{
     settings.api_token = token;
     cb();
