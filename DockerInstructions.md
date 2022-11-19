@@ -61,6 +61,7 @@ docker pull containrrr/watchtower
   x. add the following commands
     >> nano docker_run.sh
 
+```
   #!/bin/bash
   docker stop watchtower
   docker rm watchtower
@@ -73,6 +74,23 @@ docker pull containrrr/watchtower
       rtls-controller \
       rtls-scanner
   docker logs -f watchtower
-
+```
   x. run container
     >> ./updater.sh
+
+## runs immediately once
+
+```
+  #!/bin/bash
+  docker stop watchtower
+  docker rm watchtower
+  docker run -d \
+    --name watchtower \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    containrrr/watchtower \
+    --run-once \
+    --debug
+    rtls-controller \
+    rtls-scanner
+  docker logs -f watchtowe
+```
