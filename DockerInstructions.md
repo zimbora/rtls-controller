@@ -92,5 +92,5 @@ docker pull containrrr/watchtower
     --debug
     rtls-controller \
     rtls-scanner
-  docker logs -f watchtowe
+  docker logs -f watchtower
 ```

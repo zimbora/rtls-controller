@@ -135,7 +135,8 @@ var self = module.exports = {
         return cb;
       }else if(res != null && res.length > 0){
         try{
-          rooms = JSON.parse(res[0].rooms);
+          //rooms = JSON.parse(res[0].rooms);
+          rooms = res[0].rooms;
         }catch(e){
           console.log("!! error:",e);
         }
@@ -150,7 +151,8 @@ var self = module.exports = {
 
                   let data = {}
                   try{
-                    data = JSON.parse(item.data);
+                    //data = JSON.parse(item.data);
+                    data = item.data;
                   }catch(e){
                     console.log("error:",e)
                     return cb;
@@ -407,7 +409,8 @@ parseMessage = (msg)=>{
         if(err) console.log(err)
         else{
           try{
-            let config = JSON.parse(res);
+            //let config = JSON.parse(res);
+            let config = res;
             self.mqtt_connect(config);
           }catch(e){
             console.log("mqtt JSON parse error",e);
