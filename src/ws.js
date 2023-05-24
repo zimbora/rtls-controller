@@ -68,10 +68,10 @@ var self = module.exports = {
   authResponse : (data)=>{
 
     if(data.authenticated){
-      console.log("authenticated")
+      console.log("[WS] authenticated")
       message.session = data.session;
       return data.map_id;
-    }else console.log("failed auth");
+    }else console.log("[WS] failed auth");
     return false;
   },
 

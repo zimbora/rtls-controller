@@ -12,6 +12,7 @@ var Settings = require("../config/settings");
 var System = require('../src/system')
 var core = require('../src/core')
 
+
 const app = express();
 
 app.use(useragent.express());
@@ -97,9 +98,7 @@ app.get('/logout',(req,res)=>{
 // --- HOME ---
 app.get('/',(req,res)=>{
   Settings.load((data)=>{
-    console.log(data);
-    console.log(System)
-    res.render(config.public_path+'/views/dashboard',{settings:data,system:System});
+    res.render("../"+ config.public_path+'/views/dashboard',{settings:data,system:System});
   });
 });
 
@@ -138,11 +137,12 @@ app.put('/api/token',(req,res,next)=>{
           message: err
         });
       }else{
-        core.init();
+        core.init(config);
         res.status(200).json({
           status: "ok",
           message: "token replaced"
         });
+        MQTT.publish_collector("/restart",1);
       }
     })
   })
@@ -150,15 +150,22 @@ app.put('/api/token',(req,res,next)=>{
 
 app.put('/api/restart',(req,res,next)=>{
 
-  console.log("restarting service");
-  process.exit(1)
+  console.log("restarting service..");
+  MQTT.publish_collector("/restart","1");
+  setTimeout(()=>{
+    console.log("process exit..");
+    process.exit(1)
+  },500);
 });
 
 app.put('/api/reset',(req,res,next)=>{
 
   console.log("deleting configs");
+  MQTT.publish_collector("/restart",1);
   Settings.reset(()=>{
-    process.exit(1);
+    setTimeout(()=>{
+      process.exit(1)
+    },200);
   })
 });
 
@@ -174,7 +181,6 @@ app.use((err, req, res, next) => {
       });
   }
 });
-
 
 app.use((req, res, next) => {
 

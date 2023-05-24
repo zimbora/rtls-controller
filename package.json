@@ -9,7 +9,7 @@
   "author": "lucas",
   "license": "ISC",
   "dependencies": {
-    "async": "^3.2.1",
+    "async": "^3.2.4",
     "body-parser": "^1.20.0",
     "cookie-parser": "^1.4.6",
     "cookie-session": "^2.0.0",
@@ -22,8 +22,8 @@
     "hashmap": "^2.4.0",
     "http": "0.0.1-security",
     "https": "^1.0.0",
+    "inloc-api": "*",
     "mqtt": "^4.3.7",
-    "node-network-manager": "^1.0.9",
     "node-wifi": "^2.0.16",
     "request": "^2.88.2",
     "websocket": "^1.0.33"

@@ -115,7 +115,7 @@
     <div class="card">
       <div class="card-header">
         <div class="row">
-          <div class="col-sm-4 form-group">
+          <div class="col-sm-3 form-group">
             <div class="form-check">
               <% if(system.api.connected){ %>
                 <input class="form-check-input circle-online" value="" id="api_status">
@@ -125,7 +125,7 @@
               <label>API</label>
             </div>
           </div>
-          <div class="col-sm-4 form-group">
+          <div class="col-sm-3 form-group">
             <div class="form-check">
               <% if(system.ws.connected){ %>
                 <input class="form-check-input circle-online" value="" id="ws_status">
@@ -135,7 +135,18 @@
               <label>WebSocket</label>
             </div>
           </div>
-          <div class="col-sm-4">
+          <div class="col-sm-3 form-group">
+            <div class="form-check">
+              <% if(system.cloud.connected){ %>
+                <input class="form-check-input circle-online" value="" id="cloud_status">
+              <% }else{ %>
+                <input class="form-check-input circle-offline" value="" id="cloud_status">
+              <% } %>
+
+              <label>Cloud</label>
+            </div>
+          </div>
+          <div class="col-sm-3 form-group">
             <div class="form-check">
               <% if(system.mqtt.connected){ %>
                 <input class="form-check-input circle-online" value="" id="mqtt_status">
