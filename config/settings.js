@@ -2,7 +2,7 @@ const wifi = require('node-wifi');
 const getmac = require('getmac')
 var async = require('async')
 const crypto = require('crypto');
-var config = require('../config/env');
+var config = require('../config');
 
 fs = require('fs');
 var filename = process.env.DATA_PATH || "./settings.txt";
