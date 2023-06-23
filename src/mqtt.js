@@ -42,7 +42,7 @@ var self = module.exports = {
         if(err)
           console.log(err);
         else
-          self.publish("/status","online")
+          self.publish("/status","online",{retain:true,qos:2})
       })
 
       setInterval( ()=>{
